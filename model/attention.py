@@ -69,18 +69,21 @@ class MultiHeadAttention(nn.Module):
 
         # ===== 1. 线性投影 =====
         # 把 token embedding 映射成 Q/K/V
+        # 对应 explainer 中每个 token 先过线性层，得到 Query/Key/Value
         q = self.w_q(x)       # [B, Tq, d_model]
         k = self.w_k(k_in)   # [B, Tk, d_model]
         v = self.w_v(v_in)   # [B, Tk, d_model]
 
         # ===== 2. 切分多头 =====
         # [B, T, d_model] → [B, n_heads, T, d_head]
+        # 多头 = 多个“注意力通道”，每个 head 学不同的关联模式
         q = self._split_heads(q)
         k = self._split_heads(k)
         v = self._split_heads(v)
 
         # ===== 3. 计算注意力分数 QK^T =====
         # [B, nH, Tq, dH] @ [B, nH, dH, Tk] → [B, nH, Tq, Tk]
+        # 对应 explainer 的「相似度打分」，缩放避免梯度过大
         scores = torch.matmul(q, k.transpose(-2, -1)) / math.sqrt(self.d_head)
 
         # ===== 4. padding mask（屏蔽 padding token）=====
@@ -94,20 +97,24 @@ class MultiHeadAttention(nn.Module):
             # 只能用于 self-attention
             if Tk != Tq:
                 raise ValueError("causal=True 时必须是 self-attention")
+            # 对应 explainer 的“只能看见左侧已生成的 token”
             causal_mask = self._causal_mask(Tq, device=scores.device)
             scores = scores.masked_fill(causal_mask, float("-inf"))
 
         # ===== 6. softmax 得到注意力权重 =====
         # 每一行表示：当前 token 对所有 key 的注意力分布
+        # 对应 explainer 的“attention 分布条”，归一化成概率
         attn = F.softmax(scores, dim=-1)   # [B, nH, Tq, Tk]
         attn = self.drop(attn)
 
         # ===== 7. 用注意力权重加权 V =====
         # [B, nH, Tq, Tk] @ [B, nH, Tk, dH] → [B, nH, Tq, dH]
+        # 对应 explainer 的“把关注的信息汇总成上下文向量”
         ctx = torch.matmul(attn, v)
 
         # ===== 8. 合并多头 =====
         # [B, nH, Tq, dH] → [B, Tq, d_model]
+        # 多头信息拼接后回到单个 embedding 维度
         ctx = self._merge_heads(ctx)
 
         # ===== 9. 输出线性层 =====

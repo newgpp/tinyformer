@@ -94,6 +94,7 @@ class DecoderLayer(nn.Module):
         """
 
         # ===== 1) Causal Self-Attention（decoder 内部看自己，但不能看未来）=====
+        # 对应 explainer 的“Masked Self-Attention”：当前位置只看已生成的左侧 token
         a = self.ln1(x)  # [B, T, d_model]
 
         self_out, _ = self.self_attn(
@@ -108,6 +109,7 @@ class DecoderLayer(nn.Module):
 
         # ===== 2) Cross-Attention（decoder 看 encoder 输出）=====
         # 直觉：我现在要生成每个位置的 token，我应该从 encoder 哪些位置取信息？
+        # 对应 explainer 的“Encoder-Decoder Attention”：Q 来自 decoder，K/V 来自 encoder
         b = self.ln2(x)  # [B, T, d_model] 作为 Q
 
         cross_out, _ = self.cross_attn(
@@ -121,6 +123,7 @@ class DecoderLayer(nn.Module):
         x = x + self.drop(cross_out)
 
         # ===== 3) FFN =====
+        # 对应 explainer 的逐位置前馈网络（不跨 token），再加残差
         c = self.ln3(x)
         ffn_out = self.ffn(c)
         x = x + self.drop(ffn_out)

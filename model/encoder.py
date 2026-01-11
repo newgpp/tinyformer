@@ -83,6 +83,7 @@ class EncoderLayer(nn.Module):
 
         # ===== 1) Self-Attention 子层（Pre-LN）=====
         # 先做 LN，再做 attention
+        # 对应 explainer 的“Self-Attention”：每个 token 都能看到整句的所有 token
         a = self.ln1(x)  # [B, T, d_model]
 
         # encoder self-attention 不需要 causal mask
@@ -95,9 +96,11 @@ class EncoderLayer(nn.Module):
         )  # [B, T, d_model]
 
         # 残差连接：x + attention(a)
+        # 对应 explainer 的“Add & Norm”的 Add 部分
         x = x + self.drop(attn_out)
 
         # ===== 2) FFN 子层（Pre-LN）=====
+        # 对应 explainer 的逐位置前馈网络（每个位置独立处理）
         b = self.ln2(x)         # [B, T, d_model]
         ffn_out = self.ffn(b)   # [B, T, d_model]
         x = x + self.drop(ffn_out)
