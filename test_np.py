@@ -20,7 +20,7 @@ def embedding_weight_real():
 
 
 # 模拟Transformer 模型（如 GPT、BERT）中“自注意力机制 (Self-Attention)”的第一步：线性投影
-def linear(tokens):
+def linear(tokens: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     # 5: 代表一句话里有 5 个单词（Token）
     # 768: 每个单词的特征维度（这是 BERT-base 模型的标准维度）
 
@@ -41,7 +41,7 @@ def linear(tokens):
 
 
 # 计算每两个单词之间的匹配得分（Attention Score）
-def lite_attention_score(Q, K):
+def lite_attention_score(Q: np.ndarray, K: np.ndarray) -> np.ndarray:
     # K.T 是 K 的转置，形状变为 (768, 5)
     # (5, 768) @ (768, 5) = (5, 5)
     # ***结果矩阵中的每一个元素 Score_{i,j} 代表：第 i 个词对第 j 个词的关注度。***
@@ -51,7 +51,7 @@ def lite_attention_score(Q, K):
 
 # 缩放点积 (Scaled Dot-Product)
 # 直接使用 \(Q@K^{T}\) 会导致数值过大，从而使梯度消失。标准的 Attention 论文 建议除以特征维度的平方根 \(\sqrt{d_{k}}\)
-def scaled_dot_attention_score(Q, K):
+def scaled_dot_attention_score(Q: np.ndarray, K: np.ndarray) -> np.ndarray:
     # 获取Q的最后一个维度 (5, 768) 获取的就是 768
     d_k = Q.shape[-1]
     scores = Q @ K.T / np.sqrt(d_k)
@@ -59,7 +59,7 @@ def scaled_dot_attention_score(Q, K):
 
 
 # 在 NumPy 中实现 Softmax 非常直观。它的作用是将 \(Q@K^{T}\) 算出来的那些杂乱的分数转换为概率分布（即所有数字都在 0 到 1 之间，且每一行的总和等于 1）
-def softmax(x):
+def softmax(x: np.ndarray) -> np.ndarray:
     # 1. 为了数值稳定性，减去每行的最大值 (防止 exp 结果太大导致内存溢出)
     # axis=-1 表示在最后一个维度（行）上操作，keepdims=True 保持维度以便广播
     # 计算e的“差值”次方 差值<=0 计算结果都在 (0, 1]之间
@@ -71,13 +71,13 @@ def softmax(x):
     return attention_weight
 
 
-def attention_out(attn, V):
+def attention_out(attn: np.ndarray, V: np.ndarray) -> np.ndarray:
     # 4. 【核心一步】执行信息聚合
     # attn (5, 5) @ V (5, 768) = out (5, 768)
     return attn @ V
 
 
-def test_attention_out():
+def test_attention_out() -> np.ndarray:
     # 5 个单词（Token）
     tokens = np.random.randn(5, 768)
     # 线性投影
