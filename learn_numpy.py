@@ -3,12 +3,18 @@ import numpy as np
 
 # token_embedding × weight = 新 embedding
 def embedding_weight():
-    x = np.array([1, 2, 3])
+    x = np.array([[1, 2, 3]])
     w = np.random.randn(3, 4)
     y = x @ w
     print("x:", x)
     print("w:", w)
     print("y:", y)
+    print("y的类型:", type(y))
+    print("y的维度:", y.shape)
+    print("y的维度:", y.shape[0])
+    print("y的维度:", y.shape[1])
+    print("y的维度:", y.shape[-1])
+    print("y元素类型:", y.dtype)
 
 
 # 多个token
@@ -92,5 +98,6 @@ def test_attention_out() -> np.ndarray:
 
 
 if __name__ == "__main__":
-    out = test_attention_out()
-    print("out", out.shape, out)
+    # out = test_attention_out()
+    # print("out", out.shape, out)
+    embedding_weight()
