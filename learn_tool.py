@@ -2,6 +2,7 @@ import uuid
 from datetime import datetime, timedelta, timezone
 from enum import Enum, unique
 from pydantic import BaseModel
+import numpy as np
 
 
 def tool_uuid():
@@ -226,5 +227,44 @@ def tool_pydantic():
         print(f"ID: {u.id}, Name: {u.person.name}")
 
 
+# numpy实现了多维同质数组和矩阵操作
+def tool_numpy():
+    # 等同于 np.array(range(0, 12))
+    a = np.arange(0, 12)
+    # 常用属性
+    print(
+        "a",
+        f"形状 {a.shape}",
+        f"维度数量 {a.ndim}",
+        f"元素数量 {a.size}",
+        f"数据类型 {a.dtype}",
+    )
+    # 变换形状
+    a1 = a.reshape(3, 4)
+    print(
+        "a1",
+        f"形状 {a1.shape}",
+        f"维度数量 {a1.ndim}",
+        f"元素数量 {a1.size}",
+        f"数据类型 {a1.dtype}",
+    )
+    # 转置
+    a2 = a1.T
+    print(
+        "a2",
+        f"形状 {a2.shape}",
+        f"维度数量 {a2.ndim}",
+        f"元素数量 {a2.size}",
+        f"数据类型 {a2.dtype}",
+    )
+    # 正态分布
+    c = np.random.randn(3, 4)
+    print(c)
+    # 均匀分布
+    d = np.random.rand(3, 4)
+    print(d)
+    print(d.dtype)
+
+
 if __name__ == "__main__":
-    tool_pydantic()
+    tool_numpy()
